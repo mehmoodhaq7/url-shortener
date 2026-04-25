@@ -1,0 +1,83 @@
+services:
+  # ── Nginx Router ──────────────────────────────────────────
+  nginx:
+    build: ./nginx
+    container_name: urlshortener_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      blue_backend:
+        condition: service_healthy
+      blue_frontend:
+        condition: service_healthy
+    networks:
+      - blue_net
+    restart: unless-stopped
+
+  # ── Blue Frontend ─────────────────────────────────────────
+  blue_frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ""
+        VITE_APP_VERSION: "v1"
+    container_name: urlshortener_blue_frontend
+    networks:
+      - blue_net
+    restart: unless-stopped
+
+  # ── Blue Backend ──────────────────────────────────────────
+  blue_backend:
+    build: ./backend
+    container_name: urlshortener_blue_backend
+    env_file: .env.blue
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis_blue:
+        condition: service_healthy
+    networks:
+      - blue_net
+    restart: unless-stopped
+
+  # ── Redis (Blue) ──────────────────────────────────────────
+  redis_blue:
+    image: redis:7-alpine
+    container_name: urlshortener_redis_blue
+    volumes:
+      - redis_blue_data:/data
+    networks:
+      - blue_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── MongoDB (Shared) ──────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: urlshortener_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: changeme123
+      MONGO_INITDB_DATABASE: urlshortener
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - blue_net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  blue_net:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_blue_data:

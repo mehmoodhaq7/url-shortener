@@ -1,0 +1,85 @@
+
+services:
+  # ── Nginx Router ──────────────────────────────────────────
+  nginx:
+    build: ./nginx
+    container_name: urlshortener_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      green_backend:
+        condition: service_healthy
+      green_frontend:
+        condition: service_healthy
+    networks:
+      - green_net
+    restart: unless-stopped
+
+  # ── Green Frontend ────────────────────────────────────────
+  green_frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ""
+        VITE_APP_VERSION: "v2"
+    container_name: urlshortener_green_frontend
+    networks:
+      - green_net
+    restart: unless-stopped
+
+  # ── Green Backend ─────────────────────────────────────────
+  green_backend:
+    build: ./backend
+    container_name: urlshortener_green_backend
+    env_file: .env.green
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis_green:
+        condition: service_healthy
+    networks:
+      - green_net
+    restart: unless-stopped
+
+  # ── Redis (Green) ─────────────────────────────────────────
+  redis_green:
+    image: redis:7-alpine
+    container_name: urlshortener_redis_green
+    volumes:
+      - redis_green_data:/data
+    networks:
+      - green_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── MongoDB (Shared) ──────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: urlshortener_mongodb
+    env_file: .env.green
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - green_net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  green_net:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_green_data:
