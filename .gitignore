@@ -137,3 +137,30 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Environment files
+.env
+.env.blue
+.env.green
+.env.local
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Monitoring data
+monitoring/grafana/data/
+monitoring/prometheus/data/
+frontend/.vite/
+frontend/src/assets/react.svg
+frontend/src/assets/vite.svg
+frontend/README.md
+frontend/.gitignore
