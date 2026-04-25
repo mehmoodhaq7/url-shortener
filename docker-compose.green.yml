@@ -19,6 +19,7 @@ services:
 
   # ── Green Frontend ────────────────────────────────────────
   green_frontend:
+    image: ${DOCKER_USERNAME}/url-shortener-frontend:latest
     build:
       context: ./frontend
       args:
@@ -32,6 +33,7 @@ services:
 
   # ── Green Backend ─────────────────────────────────────────
   green_backend:
+    image: ${DOCKER_USERNAME}/url-shortener-backend:latest
     build: ./backend
     container_name: urlshortener_green_backend
     env_file: .env.green

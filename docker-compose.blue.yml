@@ -19,6 +19,7 @@ services:
 
   # ── Blue Frontend ─────────────────────────────────────────
   blue_frontend:
+    image: ${DOCKER_USERNAME}/url-shortener-frontend:latest
     build:
       context: ./frontend
       args:
@@ -31,6 +32,7 @@ services:
 
   # ── Blue Backend ──────────────────────────────────────────
   blue_backend:
+    image: ${DOCKER_USERNAME}/url-shortener-backend:latest
     build: ./backend
     container_name: urlshortener_blue_backend
     env_file: .env.blue
