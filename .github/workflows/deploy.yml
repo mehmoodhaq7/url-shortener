@@ -12,9 +12,8 @@ on:
         default: "auto"
 
 env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/url-shortener-backend
-  IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/url-shortener-frontend
+  IMAGE_BACKEND: ${{ vars.DOCKER_USERNAME }}/url-shortener-backend
+  IMAGE_FRONTEND: ${{ vars.DOCKER_USERNAME }}/url-shortener-frontend
 
 jobs:
   # ─── Job 1: Build & Push ─────────────────────────────────────
@@ -36,7 +35,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set up Docker Buildx
@@ -80,7 +79,6 @@ jobs:
       - name: Determine target environment
         id: env
         run: |
-          # Read current active from repo (default blue)
           CURRENT=$(cat .current_env 2>/dev/null || echo "blue")
           if [ "$CURRENT" == "blue" ]; then
             TARGET="green"
@@ -103,19 +101,9 @@ jobs:
           echo "  Current: $CURRENT → Target: $TARGET"
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-          # Update compose file with new image
-          sed -i "s|image:.*url-shortener-backend.*|image: ${{ env.IMAGE_BACKEND }}:${VERSION}|g" \
-            docker-compose.${TARGET}.yml || true
-          sed -i "s|image:.*url-shortener-frontend.*|image: ${{ env.IMAGE_FRONTEND }}:${VERSION}|g" \
-            docker-compose.${TARGET}.yml || true
-
           echo "✅ Would deploy $VERSION to $TARGET environment"
           echo "✅ Would run health check"
           echo "✅ Would switch traffic if healthy"
-
-          # Note: SSH deployment added when server is available
-          echo "target=$TARGET" >> $GITHUB_ENV
-          echo "version=$VERSION" >> $GITHUB_ENV
 
       - name: Summary
         run: |
