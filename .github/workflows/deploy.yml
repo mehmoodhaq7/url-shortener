@@ -12,7 +12,6 @@ on:
         default: "auto"
 
 env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/url-shortener-backend
   IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/url-shortener-frontend
 
