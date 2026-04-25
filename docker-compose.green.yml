@@ -1,4 +1,3 @@
-
 services:
   # ── Nginx Router ──────────────────────────────────────────
   nginx:
@@ -6,12 +5,15 @@ services:
     container_name: urlshortener_nginx
     ports:
       - "80:80"
+    volumes:
+      - ./nginx/conf.d/upstream.conf:/etc/nginx/conf.d/upstream.conf
     depends_on:
-      green_backend:
+      blue_backend:
         condition: service_healthy
-      green_frontend:
+      blue_frontend:
         condition: service_healthy
     networks:
+      - blue_net
       - green_net
     restart: unless-stopped
 
@@ -25,6 +27,7 @@ services:
     container_name: urlshortener_green_frontend
     networks:
       - green_net
+      - blue_net
     restart: unless-stopped
 
   # ── Green Backend ─────────────────────────────────────────
@@ -39,6 +42,7 @@ services:
         condition: service_healthy
     networks:
       - green_net
+      - blue_net
     restart: unless-stopped
 
   # ── Redis (Green) ─────────────────────────────────────────
@@ -69,6 +73,7 @@ services:
       - mongodb_data:/data/db
     networks:
       - green_net
+      - blue_net
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -78,6 +83,8 @@ services:
 
 networks:
   green_net:
+    driver: bridge
+  blue_net:
     driver: bridge
 
 volumes:
