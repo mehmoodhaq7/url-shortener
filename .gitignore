@@ -164,3 +164,5 @@ frontend/src/assets/react.svg
 frontend/src/assets/vite.svg
 frontend/README.md
 frontend/.gitignore
+.current_env
+nginx/conf.d/upstream.conf.bak
