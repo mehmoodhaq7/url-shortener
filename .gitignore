@@ -166,3 +166,4 @@ frontend/README.md
 frontend/.gitignore
 .current_env
 nginx/conf.d/upstream.conf.bak
+logs/
